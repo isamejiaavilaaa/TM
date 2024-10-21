@@ -21,10 +21,13 @@ st.image(image, width=350)
 
 # Configuración de la barra lateral
 with st.sidebar:
-    st.subheader("Usando un modelo entrenado en Teachable Machine puedes usar esta app para identificar gestos de la mano.")
+    st.subheader("Usando un modelo entrenado en Teachable Machine, puedes usar esta app para identificar gestos de la mano.")
 
 # Captura de imagen desde la cámara
 img_file_buffer = st.camera_input("Toma una Foto")
+
+# Definir un umbral mínimo de confianza para las predicciones
+confidence_threshold = 0.7
 
 if img_file_buffer is not None:
     # Leer la imagen desde el buffer
@@ -46,10 +49,17 @@ if img_file_buffer is not None:
     # Realizar la predicción
     prediction = model.predict(data)
 
-    # Mostrar el resultado de la predicción
-    if prediction[0][0] > 0.5:
-        st.header('Mano Abierta, con probabilidad: ' + str(prediction[0][0]))
-    elif prediction[0][1] > 0.5:
-        st.header('Mano Cerrada, con probabilidad: ' + str(prediction[0][1]))
+    # Mostrar las probabilidades para ambas predicciones
+    prob_abierta = prediction[0][0]
+    prob_cerrada = prediction[0][1]
+
+    st.write(f"Probabilidad de Mano Abierta: {prob_abierta:.2f}")
+    st.write(f"Probabilidad de Mano Cerrada: {prob_cerrada:.2f}")
+
+    # Decisión basada en el umbral de confianza
+    if prob_abierta > confidence_threshold:
+        st.header(f'Mano Abierta detectada con alta confianza ({prob_abierta:.2f}) 😊')
+    elif prob_cerrada > confidence_threshold:
+        st.header(f'Mano Cerrada detectada con alta confianza ({prob_cerrada:.2f}) ✊')
     else:
-        st.header('No se ha detectado la mano correctamente.')
+        st.header('No se ha detectado con suficiente confianza si la mano está abierta o cerrada.')
